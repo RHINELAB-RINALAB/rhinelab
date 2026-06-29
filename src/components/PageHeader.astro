@@ -1,0 +1,49 @@
+---
+interface Props {
+  eyebrow: string;
+  title: string;
+  lede?: string;
+  count?: number;
+}
+const { eyebrow, title, lede, count } = Astro.props;
+---
+
+<header class="ph">
+  <div class="wrap">
+    <p class="eyebrow" data-reveal>
+      {eyebrow}{count !== undefined && <span class="ph__count">{count}</span>}
+    </p>
+    <h1 class="ph__title" data-reveal data-reveal-delay="80ms">{title}</h1>
+    {lede && <p class="ph__lede prose-measure" data-reveal data-reveal-delay="160ms">{lede}</p>}
+  </div>
+</header>
+
+<style>
+  .ph {
+    padding-block: clamp(2.5rem, 2rem + 4vw, 4rem) clamp(1.5rem, 3vw, 2.5rem);
+    border-bottom: 1px solid var(--line);
+  }
+  .ph__count {
+    font-family: var(--font-mono);
+    color: var(--mist);
+    margin-left: 0.6em;
+    font-size: 0.85em;
+  }
+  .ph__count::before {
+    content: '(';
+  }
+  .ph__count::after {
+    content: ')';
+  }
+  .ph__title {
+    font-size: var(--step-4);
+    margin-top: 0.6rem;
+    max-width: 22ch;
+  }
+  .ph__lede {
+    margin-top: 1rem;
+    color: var(--mist);
+    font-size: var(--step-1);
+    line-height: 1.6;
+  }
+</style>

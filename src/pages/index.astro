@@ -1,0 +1,563 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection, getEntry, render } from 'astro:content';
+import { fields, teams } from '../config/site';
+import { formatDateShort, isUpcoming } from '../lib/format';
+
+// ── Editable home/about copy lives in src/content/pages/home.md ────────────
+const home = await getEntry('pages', 'home');
+if (!home) throw new Error('Missing src/content/pages/home.md');
+const { Content } = await render(home);
+const d = home.data;
+
+// ── Latest across the lab ──────────────────────────────────────────────────
+const announcements = (
+  await getCollection('announcements', (e) => !e.data.draft)
+).sort((a, b) => {
+  if (a.data.pinned !== b.data.pinned) return a.data.pinned ? -1 : 1;
+  return b.data.pubDate.valueOf() - a.data.pubDate.valueOf();
+});
+const latestNote = announcements[0];
+const secondNote = announcements[1];
+
+const upcoming = (await getCollection('events', (e) => !e.data.draft))
+  .filter((e) => isUpcoming(e.data.endDate ?? e.data.startDate))
+  .sort((a, b) => a.data.startDate.valueOf() - b.data.startDate.valueOf());
+const nextEvent = upcoming[0];
+
+const teamCounts = (await getCollection('team')).reduce(
+  (acc, m) => ((acc[m.data.team] = (acc[m.data.team] ?? 0) + 1), acc),
+  {} as Record<string, number>,
+);
+---
+
+<BaseLayout>
+  {/* ════════════════════════════ HERO ════════════════════════════ */}
+  <section class="hero">
+    <div class="wrap hero__inner">
+      <p class="eyebrow hero__eyebrow">{d.eyebrow}</p>
+      <h1 class="hero__title">
+        {d.headline} <span class="hero__accent">{d.headlineAccent}</span>
+      </h1>
+      <p class="hero__lede">{d.lede}</p>
+      <div class="hero__cta">
+        <a class="btn" href="/research">Explore the research →</a>
+        <a class="btn btn--ghost" href="/team">Meet the team</a>
+      </div>
+
+      <ul class="hero__fields" role="list">
+        {
+          fields.map((f, i) => (
+            <li class="hero__field">
+              <span class="hero__field-no">0{i + 1}</span>
+              <span class="hero__field-label">{f.label}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  {/* ════════════════════════════ ABOUT ════════════════════════════ */}
+  <section class="section about" id="about">
+    <div class="wrap">
+      <div class="about__top">
+        <div class="about__intro">
+          <p class="eyebrow" data-reveal>About the lab</p>
+          <h2 class="about__title" data-reveal data-reveal-delay="80ms">
+            {d.aboutTitle}
+          </h2>
+        </div>
+        <p class="about__lede" data-reveal data-reveal-delay="140ms">
+          {d.aboutLede}
+        </p>
+      </div>
+
+      <div class="about__body">
+        <div class="prose about__prose" data-reveal>
+          <Content />
+        </div>
+        <aside class="about__stats" data-reveal data-reveal-delay="120ms">
+          {
+            d.stats?.map((s) => (
+              <div class="stat">
+                <span class="stat__value">{s.value}</span>
+                <span class="stat__label">{s.label}</span>
+              </div>
+            ))
+          }
+        </aside>
+      </div>
+    </div>
+
+    {/* Gallery of meetups / lab images */}
+    {
+      d.gallery && d.gallery.length > 0 && (
+        <div class="wrap about__gallery" data-reveal>
+          {d.gallery.map((g, i) => (
+            <figure class:list={['gal', `gal--${i % 4}`]}>
+              <img src={g.src} alt={g.alt} loading="lazy" width="800" height="600" />
+              {g.caption && <figcaption>{g.caption}</figcaption>}
+            </figure>
+          ))}
+        </div>
+      )
+    }
+  </section>
+
+  {/* ════════════════════════════ FIELDS ════════════════════════════ */}
+  <section class="section fields" id="fields">
+    <div class="wrap">
+      <p class="eyebrow" data-reveal>Three study fields</p>
+      <div class="fields__grid">
+        {
+          fields.map((f, i) => (
+            <article class="fieldcard" data-reveal data-reveal-delay={`${i * 90}ms`}>
+              <span class="fieldcard__no">0{i + 1}</span>
+              <h3 class="fieldcard__title">{f.label}</h3>
+              <p class="fieldcard__blurb">{f.blurb}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  {/* ════════════════════════════ TEAMS ════════════════════════════ */}
+  <section class="section teams" id="teams">
+    <div class="wrap">
+      <div class="teams__head">
+        <p class="eyebrow" data-reveal>Five groups</p>
+        <h2 class="teams__title" data-reveal data-reveal-delay="80ms">
+          One small lab, several threads of inquiry.
+        </h2>
+      </div>
+      <ul class="teams__list" role="list">
+        {
+          teams.map((t, i) => (
+            <li class="teamrow" data-reveal data-reveal-delay={`${i * 70}ms`}>
+              <span class="teamrow__acr">{t.acronym}</span>
+              <div class="teamrow__body">
+                <h3 class="teamrow__name">{t.name}</h3>
+                <p class="teamrow__blurb">{t.blurb}</p>
+              </div>
+              <span class="teamrow__count">
+                {teamCounts[t.acronym] ?? 0}
+                <small>members</small>
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+      <a class="link-wave teams__more" href="/team">See everyone →</a>
+    </div>
+  </section>
+
+  {/* ════════════════════════════ LATEST ════════════════════════════ */}
+  <section class="section latest">
+    <div class="wrap">
+      <p class="eyebrow" data-reveal>Latest from the lab</p>
+      <div class="latest__grid">
+        {
+          latestNote && (
+            <a class="feature" href={`/announcements/${latestNote.id}`} data-reveal>
+              <span class="feature__tag">News</span>
+              <h3 class="feature__title">{latestNote.data.title}</h3>
+              <p class="feature__desc">{latestNote.data.description}</p>
+              <span class="feature__meta">
+                {formatDateShort(latestNote.data.pubDate)}
+              </span>
+            </a>
+          )
+        }
+        <div class="latest__side">
+          {
+            nextEvent && (
+              <a class="mini" href={`/events/${nextEvent.id}`} data-reveal data-reveal-delay="80ms">
+                <span class="mini__tag">Next event · {nextEvent.data.kind}</span>
+                <h4 class="mini__title">{nextEvent.data.title}</h4>
+                <span class="mini__meta">
+                  {formatDateShort(nextEvent.data.startDate)} · {nextEvent.data.location}
+                </span>
+              </a>
+            )
+          }
+          {
+            secondNote && (
+              <a class="mini" href={`/announcements/${secondNote.id}`} data-reveal data-reveal-delay="160ms">
+                <span class="mini__tag">News</span>
+                <h4 class="mini__title">{secondNote.data.title}</h4>
+                <span class="mini__meta">{formatDateShort(secondNote.data.pubDate)}</span>
+              </a>
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* ════════════════════════════ CTA ════════════════════════════ */}
+  <section class="section contact-cta">
+    <div class="wrap contact-cta__inner" data-reveal>
+      <h2 class="contact-cta__title">Working on something foundational?</h2>
+      <p class="contact-cta__text">
+        We collaborate, host visitors, and are usually hiring. If the questions
+        here are your questions too, we would like to hear from you.
+      </p>
+      <a class="btn" href="/contact">Get in touch <span class="arrow">→</span></a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* ── HERO ─────────────────────────────────────────────────────────────── */
+  .hero {
+    padding-block: clamp(3rem, 2.5rem + 4vw, 5.5rem) clamp(2rem, 4vw, 3.5rem);
+    border-bottom: 1px solid var(--line);
+  }
+  .hero__eyebrow {
+    color: var(--mist);
+  }
+  .hero__title {
+    font-size: var(--step-5);
+    font-weight: 600;
+    margin-top: 1rem;
+    max-width: 26ch;
+    line-height: 1.15;
+  }
+  .hero__accent {
+    color: var(--teal);
+  }
+  .hero__lede {
+    margin-top: 1.2rem;
+    max-width: 60ch;
+    font-size: var(--step-1);
+    color: var(--mist);
+    line-height: 1.65;
+  }
+  .hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-top: 1.8rem;
+  }
+  .hero__fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin-top: 2.4rem;
+    padding-top: 1.6rem;
+    border-top: 1px solid var(--line);
+  }
+  .hero__field {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+  .hero__field-no {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--mist);
+  }
+  .hero__field-label {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: var(--step-0);
+    color: var(--ink);
+  }
+
+  /* ── ABOUT ────────────────────────────────────────────────────────────── */
+  .about__top {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem 3rem;
+    align-items: end;
+  }
+  .about__title {
+    font-size: var(--step-3);
+    margin-top: 0.8rem;
+    max-width: 18ch;
+  }
+  .about__lede {
+    font-size: var(--step-1);
+    color: var(--mist);
+    line-height: 1.65;
+  }
+  .about__body {
+    display: grid;
+    grid-template-columns: 1fr 0.5fr;
+    gap: 3rem;
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--line);
+  }
+  .about__stats {
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+  }
+  .stat {
+    border-left: 2px solid var(--line-strong);
+    padding-left: 1rem;
+  }
+  .stat__value {
+    display: block;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--step-3);
+    line-height: 1;
+    color: var(--ink);
+  }
+  .stat__label {
+    display: block;
+    margin-top: 0.4rem;
+    color: var(--mist);
+    font-size: var(--step--1);
+    line-height: 1.4;
+  }
+
+  .about__gallery {
+    margin-top: 2.5rem;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+  .gal {
+    margin: 0;
+  }
+  .gal img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+  }
+  .gal figcaption {
+    margin-top: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--mist);
+    line-height: 1.4;
+  }
+  .gal--0 {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+
+  /* ── FIELDS ───────────────────────────────────────────────────────────── */
+  .fields {
+    border-top: 1px solid var(--line);
+  }
+  .fields__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-top: 1.8rem;
+  }
+  .fieldcard {
+    border-top: 2px solid var(--line-strong);
+    padding-top: 1rem;
+  }
+  .fieldcard__no {
+    font-family: var(--font-mono);
+    color: var(--mist);
+    font-size: 0.8rem;
+  }
+  .fieldcard__title {
+    font-size: var(--step-2);
+    margin-top: 0.4rem;
+  }
+  .fieldcard__blurb {
+    margin-top: 0.6rem;
+    color: var(--mist);
+    font-size: var(--step-0);
+    line-height: 1.6;
+  }
+
+  /* ── TEAMS ────────────────────────────────────────────────────────────── */
+  .teams__title {
+    font-size: var(--step-3);
+    margin-top: 0.8rem;
+    max-width: 22ch;
+  }
+  .teams__list {
+    margin-top: 1.8rem;
+    border-top: 1px solid var(--line);
+  }
+  .teamrow {
+    display: grid;
+    grid-template-columns: 120px 1fr auto;
+    gap: 1.5rem;
+    align-items: baseline;
+    padding: 1.2rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .teamrow__acr {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: var(--step-0);
+    color: var(--teal);
+  }
+  .teamrow__name {
+    font-size: var(--step-1);
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .teamrow__blurb {
+    margin-top: 0.3rem;
+    color: var(--mist);
+    font-size: var(--step--1);
+    line-height: 1.55;
+    max-width: 62ch;
+  }
+  .teamrow__count {
+    font-family: var(--font-mono);
+    font-size: var(--step-1);
+    color: var(--ink);
+    text-align: right;
+    line-height: 1;
+  }
+  .teamrow__count small {
+    display: block;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mist);
+    margin-top: 0.3rem;
+  }
+  .teams__more {
+    display: inline-flex;
+    margin-top: 1.4rem;
+  }
+
+  /* ── LATEST ───────────────────────────────────────────────────────────── */
+  .latest {
+    border-top: 1px solid var(--line);
+  }
+  .latest__grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 2.5rem;
+    margin-top: 1.8rem;
+  }
+  .feature {
+    display: flex;
+    flex-direction: column;
+    padding-top: 1rem;
+    border-top: 2px solid var(--line-strong);
+  }
+  .feature__tag,
+  .mini__tag {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--mist);
+  }
+  .feature__title {
+    font-size: var(--step-2);
+    margin-top: 0.5rem;
+  }
+  .feature:hover .feature__title,
+  .mini:hover .mini__title {
+    text-decoration: underline;
+    text-decoration-color: var(--line-strong);
+    text-underline-offset: 3px;
+  }
+  .feature__desc {
+    color: var(--mist);
+    margin-top: 0.6rem;
+    line-height: 1.6;
+    flex: 1;
+  }
+  .feature__meta {
+    margin-top: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    color: var(--mist);
+  }
+  .latest__side {
+    display: grid;
+    gap: 1.5rem;
+    align-content: start;
+  }
+  .mini {
+    display: flex;
+    flex-direction: column;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--line-strong);
+  }
+  .mini__title {
+    font-size: var(--step-1);
+    margin-top: 0.4rem;
+  }
+  .mini__meta {
+    margin-top: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.73rem;
+    color: var(--mist);
+  }
+
+  /* ── CONTACT CTA ──────────────────────────────────────────────────────── */
+  .contact-cta {
+    border-top: 1px solid var(--line);
+  }
+  .contact-cta__inner {
+    max-width: 60ch;
+  }
+  .contact-cta__title {
+    font-size: var(--step-3);
+  }
+  .contact-cta__text {
+    color: var(--mist);
+    margin-top: 0.9rem;
+    font-size: var(--step-1);
+    line-height: 1.6;
+  }
+  .contact-cta__inner .btn {
+    margin-top: 1.4rem;
+  }
+
+  /* ── RESPONSIVE ───────────────────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .about__top,
+    .about__body,
+    .latest__grid {
+      grid-template-columns: 1fr;
+    }
+    .about__body {
+      gap: 2rem;
+    }
+    .fields__grid {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    .about__gallery {
+      grid-template-columns: 1fr 1fr;
+    }
+    .gal--0 {
+      grid-column: span 2;
+      grid-row: span 1;
+    }
+    .teamrow {
+      grid-template-columns: 1fr auto;
+      grid-template-areas: 'acr count' 'body body';
+      gap: 0.4rem 1rem;
+    }
+    .teamrow__acr { grid-area: acr; }
+    .teamrow__count { grid-area: count; }
+    .teamrow__body { grid-area: body; }
+  }
+  @media (max-width: 520px) {
+    .about__gallery {
+      grid-template-columns: 1fr;
+    }
+    .gal--0 {
+      grid-column: span 1;
+    }
+    .hero__fields {
+      gap: 1rem;
+    }
+  }
+</style>

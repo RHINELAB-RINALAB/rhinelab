@@ -1,0 +1,141 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection, render } from 'astro:content';
+import { formatDate, isUpcoming } from '../../lib/format';
+
+export async function getStaticPaths() {
+  const events = await getCollection('events', (e) => !e.data.draft);
+  return events.map((event) => ({
+    params: { slug: event.id },
+    props: { event },
+  }));
+}
+
+const { event } = Astro.props;
+const { Content } = await render(event);
+const d = event.data;
+const upcoming = isUpcoming(d.endDate ?? d.startDate);
+---
+
+<BaseLayout title={d.title} description={d.description} article={true} image={d.cover}>
+  <article class="ev">
+    <header class="ev__head">
+      <div class="wrap">
+        <a class="link-wave ev__back" href="/events">← All events</a>
+        <div class="ev__badges">
+          <span class="chip">{d.kind}</span>
+          <span class:list={['chip', upcoming ? 'chip--up' : '']}>
+            {upcoming ? 'Upcoming' : 'Past'}
+          </span>
+        </div>
+        <h1 class="ev__title">{d.title}</h1>
+        <p class="ev__desc">{d.description}</p>
+      </div>
+    </header>
+
+    <div class="wrap ev__layout">
+      <div class="prose ev__body">
+        <Content />
+      </div>
+      <aside class="ev__aside">
+        <dl class="ev__facts">
+          <div>
+            <dt>When</dt>
+            <dd>
+              {formatDate(d.startDate)}
+              {d.endDate && <> — {formatDate(d.endDate)}</>}
+            </dd>
+          </div>
+          <div>
+            <dt>Where</dt>
+            <dd>{d.location}</dd>
+          </div>
+          <div>
+            <dt>Format</dt>
+            <dd>{d.kind}</dd>
+          </div>
+        </dl>
+        {
+          d.registerUrl && upcoming && (
+            <a class="btn ev__register" href={d.registerUrl} target="_blank" rel="noopener">
+              Register <span class="arrow">→</span>
+            </a>
+          )
+        }
+      </aside>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .ev__head {
+    padding-block: clamp(5rem, 4rem + 6vw, 8rem) 2.5rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .ev__back {
+    display: inline-flex;
+    margin-bottom: 2rem;
+  }
+  .ev__badges {
+    display: flex;
+    gap: 0.6rem;
+  }
+  .chip--up {
+    color: var(--aqua);
+    border-color: color-mix(in srgb, var(--aqua) 45%, transparent);
+  }
+  .ev__title {
+    font-size: var(--step-4);
+    margin-top: 1.2rem;
+    max-width: 20ch;
+  }
+  .ev__desc {
+    margin-top: 1.4rem;
+    font-size: var(--step-1);
+    color: var(--foam);
+    max-width: var(--measure);
+    line-height: 1.55;
+  }
+  .ev__layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 3.5rem;
+    padding-block: 3.5rem;
+    align-items: start;
+  }
+  .ev__aside {
+    position: sticky;
+    top: 90px;
+    border-top: 2px solid var(--line-strong);
+    padding-top: 1.4rem;
+  }
+  .ev__facts > div + div {
+    margin-top: 1.2rem;
+  }
+  .ev__facts dt {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mist);
+  }
+  .ev__facts dd {
+    margin-top: 0.4rem;
+    color: var(--foam);
+    line-height: 1.5;
+  }
+  .ev__register {
+    margin-top: 1.8rem;
+    width: 100%;
+    justify-content: center;
+  }
+  @media (max-width: 820px) {
+    .ev__layout {
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
+    .ev__aside {
+      position: static;
+    }
+  }
+</style>

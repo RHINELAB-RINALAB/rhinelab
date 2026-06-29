@@ -1,0 +1,92 @@
+---
+interface Props {
+  /** Size of the circular mark in px. */
+  size?: number;
+  /** Show the "Rhinelab" wordmark next to the mark. */
+  wordmark?: boolean;
+  /** Show the "Research Laboratory" subtitle (only with wordmark). */
+  subtitle?: boolean;
+  class?: string;
+}
+const { size = 40, wordmark = true, subtitle = false, class: cls = '' } = Astro.props;
+---
+
+<span class:list={['logo', cls]} style={`--mark: ${size}px`}>
+  <svg
+    class="logo__mark"
+    viewBox="0 0 512 512"
+    width={size}
+    height={size}
+    role="img"
+    aria-label="Rhinelab"
+  >
+    <defs>
+      <clipPath id="rl-clip"><circle cx="256" cy="256" r="170"></circle></clipPath>
+    </defs>
+    <circle
+      cx="256"
+      cy="256"
+      r="186"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="20"></circle>
+    <g
+      clip-path="url(#rl-clip)"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="17"
+      stroke-linecap="round"
+    >
+      <path d="M70 232 q46 -42 93 0 t93 0 t93 0 t93 0"></path>
+      <path d="M70 300 q46 -42 93 0 t93 0 t93 0 t93 0"></path>
+    </g>
+  </svg>
+
+  {
+    wordmark && (
+      <span class="logo__text">
+        <span class="logo__word">
+          RHINE<span class="logo__accent">LAB</span>
+        </span>
+        {subtitle && <span class="logo__sub">Research Laboratory</span>}
+      </span>
+    )
+  }
+</span>
+
+<style>
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    color: var(--teal);
+  }
+  .logo__mark {
+    flex: none;
+    width: var(--mark);
+    height: var(--mark);
+  }
+  .logo__text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+  }
+  .logo__word {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: calc(var(--mark) * 0.62);
+    letter-spacing: -0.02em;
+    color: var(--paper);
+  }
+  .logo__accent {
+    color: var(--aqua);
+  }
+  .logo__sub {
+    font-family: var(--font-mono);
+    font-size: calc(var(--mark) * 0.2);
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--mist);
+    margin-top: 0.45em;
+  }
+</style>

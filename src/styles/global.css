@@ -1,0 +1,331 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   RHINELAB · DESIGN SYSTEM
+   A plain, content-first academic style: paper background, restrained type,
+   hairline rules instead of floating cards, one muted accent.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+@import '@fontsource-variable/newsreader';
+@import '@fontsource/ibm-plex-mono/400.css';
+
+:root {
+  /* ── Palette ───────────────────────────────────────────────────────────
+     Light, paper-like. A single muted teal accent is the only colour, used
+     sparingly for links. Variable names are kept from the previous brand
+     system so page-level styles continue to resolve, but every value now
+     maps onto a calm, academic light theme. */
+  --abyss: #fdfcf9; /* page background — warm paper */
+  --deep: #f4f2ec; /* alternating section surface */
+  --slate: #fdfcf9; /* surfaces (kept flush with the page) */
+  --slate-2: #eceae3; /* faint raised surface */
+  --teal: #15605f; /* accent — links, labels */
+  --aqua: #0e4a49; /* accent on hover (darker) */
+  --foam: #1d1c19; /* primary body text */
+  --mist: #6a675f; /* muted secondary text */
+  --paper: #15140f; /* headings / strongest ink */
+  --ink: #15140f; /* text on light surfaces */
+
+  --line: rgba(20, 18, 12, 0.14);
+  --line-strong: rgba(20, 18, 12, 0.28);
+  --glass: color-mix(in srgb, var(--abyss) 92%, transparent);
+
+  /* ── Type ──────────────────────────────────────────────────────────────
+     Serif body for long-form reading; neutral system sans for headings and
+     navigation; mono for metadata. No display/brand typeface. */
+  --font-display: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-body: 'Newsreader Variable', ui-serif, Georgia, 'Times New Roman', serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  /* Calmer, smaller type scale — content over spectacle. */
+  --step--1: clamp(0.8rem, 0.78rem + 0.1vw, 0.86rem);
+  --step-0: 1.02rem;
+  --step-1: clamp(1.1rem, 1.05rem + 0.25vw, 1.25rem);
+  --step-2: clamp(1.3rem, 1.2rem + 0.45vw, 1.6rem);
+  --step-3: clamp(1.55rem, 1.4rem + 0.7vw, 2rem);
+  --step-4: clamp(1.9rem, 1.65rem + 1vw, 2.6rem);
+  --step-5: clamp(2.2rem, 1.9rem + 1.4vw, 3rem);
+
+  /* ── Layout ────────────────────────────────────────────────────────────── */
+  --measure: 68ch;
+  --gutter: clamp(1.25rem, 0.8rem + 2.5vw, 2.5rem);
+  --max: 960px; /* narrower, document-like column */
+  --radius: 4px;
+  --radius-sm: 3px;
+
+  /* ── Motion ────────────────────────────────────────────────────────────── */
+  --ease: ease;
+  --dur: 0.2s;
+
+  color-scheme: light;
+}
+
+/* ── Reset ─────────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+* {
+  margin: 0;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+}
+body {
+  background: var(--abyss);
+  color: var(--foam);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.7;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: 100vh;
+}
+img,
+picture,
+svg,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  font: inherit;
+  cursor: pointer;
+}
+ul[role='list'] {
+  list-style: none;
+  padding: 0;
+}
+
+/* ── Headings ──────────────────────────────────────────────────────────── */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  color: var(--paper);
+  text-wrap: balance;
+}
+
+/* ── Reusable structural classes ───────────────────────────────────────── */
+.wrap {
+  width: 100%;
+  max-width: var(--max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.section {
+  padding-block: clamp(2.5rem, 1.8rem + 3vw, 4rem);
+}
+.prose-measure {
+  max-width: var(--measure);
+}
+
+/* Eyebrow — small mono label that names a section. */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mist);
+  display: inline-block;
+}
+
+/* Tag / chip — plain, square, understated. */
+.chip {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: var(--mist);
+  border: 1px solid var(--line-strong);
+  border-radius: 3px;
+  padding: 0.15em 0.5em;
+  white-space: nowrap;
+}
+
+/* Buttons — restrained bordered links, no fills or motion by default. */
+.btn {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--step--1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.55em 1em;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  transition: border-color var(--dur), color var(--dur);
+}
+.btn:hover {
+  border-color: var(--ink);
+}
+.btn--ghost {
+  color: var(--foam);
+}
+.btn--ghost:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+/* Inline link — simple underline, accent colour. The "wave" name is kept so
+   existing markup works, but it is now an ordinary academic link. */
+.link-wave {
+  color: var(--teal);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  text-decoration-color: var(--line-strong);
+  transition: text-decoration-color var(--dur), color var(--dur);
+}
+.link-wave:hover {
+  color: var(--aqua);
+  text-decoration-color: currentColor;
+}
+
+/* Hairline divider */
+.rule {
+  height: 1px;
+  background: var(--line);
+  border: 0;
+}
+
+/* ── Scroll reveal: neutralised. Content is shown immediately. ─────────── */
+[data-reveal] {
+  opacity: 1;
+  transform: none;
+}
+
+/* ── Accessibility ─────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -120%;
+  z-index: 200;
+  background: var(--ink);
+  color: var(--abyss);
+  padding: 0.7em 1.1em;
+  border-radius: 4px;
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ── Long-form prose (article bodies) ──────────────────────────────────── */
+.prose {
+  font-family: var(--font-body);
+  font-size: var(--step-1);
+  line-height: 1.75;
+  color: var(--foam);
+  max-width: var(--measure);
+}
+.prose > * + * {
+  margin-top: 1.1em;
+}
+.prose h2,
+.prose h3 {
+  font-family: var(--font-display);
+  margin-top: 1.8em;
+  margin-bottom: 0.2em;
+  color: var(--paper);
+}
+.prose h2 {
+  font-size: var(--step-2);
+}
+.prose h3 {
+  font-size: var(--step-1);
+}
+.prose a {
+  color: var(--teal);
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 2px;
+}
+.prose a:hover {
+  text-decoration-color: currentColor;
+  color: var(--aqua);
+}
+.prose blockquote {
+  border-left: 2px solid var(--line-strong);
+  padding-left: 1.2em;
+  color: var(--mist);
+  font-style: italic;
+}
+.prose code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--deep);
+  padding: 0.12em 0.4em;
+  border-radius: 3px;
+}
+.prose pre {
+  background: var(--deep);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 1.1em 1.3em;
+  overflow-x: auto;
+  font-size: 0.88rem;
+}
+.prose pre code {
+  background: none;
+  padding: 0;
+}
+.prose ul,
+.prose ol {
+  padding-left: 1.3em;
+}
+.prose li::marker {
+  color: var(--mist);
+}
+.prose img {
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+}
+.prose hr {
+  border: 0;
+  height: 1px;
+  background: var(--line);
+  margin-block: 2em;
+}

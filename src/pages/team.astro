@@ -1,0 +1,183 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { getCollection } from 'astro:content';
+import { teams } from '../config/site';
+
+const members = await getCollection('team');
+const byTeam = (acr: string) =>
+  members
+    .filter((m) => m.data.team === acr)
+    .sort((a, b) => a.data.order - b.data.order);
+
+function initials(name: string) {
+  return name
+    .replace(/^(Dr\.|Prof\.|Mr\.|Ms\.)\s+/i, '')
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join('');
+}
+---
+
+<BaseLayout
+  title="Team"
+  description="The people of Rhinelab, across Core Management, MTAIL, TAAI, and MAPR."
+>
+  <PageHeader
+    eyebrow="Team"
+    title="The people behind the work"
+    lede="A deliberately small, distributed group — organised into four teams that stay in close conversation."
+    count={members.length}
+  />
+
+  {
+    teams.map((team) => {
+      const people = byTeam(team.acronym);
+      if (people.length === 0) return null;
+      return (
+        <section class="section teamsec">
+          <div class="wrap">
+            <div class="teamsec__head" data-reveal>
+              <h2 class="teamsec__acr">{team.acronym}</h2>
+              <div>
+                <p class="teamsec__name">{team.name}</p>
+                <p class="teamsec__blurb">{team.blurb}</p>
+              </div>
+            </div>
+            <ul class="memberlist" role="list">
+              {people.map((m, i) => (
+                <li data-reveal data-reveal-delay={`${(i % 4) * 60}ms`}>
+                  <article class="member">
+                    <div class="member__avatar" aria-hidden="true">
+                      {m.data.avatar ? (
+                        <img src={m.data.avatar} alt="" loading="lazy" />
+                      ) : (
+                        <span>{initials(m.data.name)}</span>
+                      )}
+                    </div>
+                    <h3 class="member__name">{m.data.name}</h3>
+                    <p class="member__role">{m.data.role}</p>
+                    {m.data.fields.length > 0 && (
+                      <div class="member__fields">
+                        {m.data.fields.map((f) => (
+                          <span class="chip" data-field={f}>{f}</span>
+                        ))}
+                      </div>
+                    )}
+                    <div class="member__links">
+                      {m.data.email && (
+                        <a class="link-wave" href={`mailto:${m.data.email}`}>Email</a>
+                      )}
+                      {m.data.links.map((l) => (
+                        <a class="link-wave" href={l.href} target="_blank" rel="noopener">
+                          {l.label}
+                        </a>
+                      ))}
+                    </div>
+                  </article>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      );
+    })
+  }
+</BaseLayout>
+
+<style>
+  .teamsec {
+    padding-block: clamp(2rem, 4vw, 3rem);
+    border-bottom: 1px solid var(--line);
+  }
+  .teamsec__head {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 1.8rem;
+  }
+  .teamsec__acr {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: var(--step-1);
+    color: var(--teal);
+    flex: none;
+  }
+  .teamsec__name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--step-1);
+    color: var(--paper);
+  }
+  .teamsec__blurb {
+    color: var(--mist);
+    margin-top: 0.3rem;
+    max-width: 70ch;
+    line-height: 1.55;
+  }
+  .memberlist {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.6rem 1.4rem;
+  }
+  .member {
+    height: 100%;
+  }
+  .member__avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--slate-2);
+    border: 1px solid var(--line);
+    display: grid;
+    place-items: center;
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--mist);
+    font-size: 1rem;
+    overflow: hidden;
+    margin-bottom: 0.9rem;
+  }
+  .member__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .member__name {
+    font-size: var(--step-1);
+  }
+  .member__role {
+    color: var(--mist);
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    margin-top: 0.25rem;
+  }
+  .member__fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.8rem;
+  }
+  .member__links {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.9rem;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+  }
+  @media (max-width: 980px) {
+    .memberlist {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 540px) {
+    .memberlist {
+      grid-template-columns: 1fr;
+    }
+    .teamsec__head {
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+  }
+</style>

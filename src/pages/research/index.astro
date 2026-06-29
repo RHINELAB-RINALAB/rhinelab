@@ -1,0 +1,183 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import { getCollection } from 'astro:content';
+
+const pubs = (await getCollection('publications', (e) => !e.data.draft)).sort(
+  (a, b) => b.data.year - a.data.year,
+);
+
+// Group by year (descending)
+const years = [...new Set(pubs.map((p) => p.data.year))].sort((a, b) => b - a);
+const byYear = years.map((y) => ({
+  year: y,
+  items: pubs.filter((p) => p.data.year === y),
+}));
+
+const fieldOf = (f?: string) => (f ? f.toLowerCase() : undefined);
+---
+
+<BaseLayout
+  title="Research"
+  description="Preprints, papers, notes, and theses from Rhinelab across our foundational, mathematical, and physics work."
+>
+  <PageHeader
+    eyebrow="Research"
+    title="Publications &amp; preprints"
+    lede="Our written output — preprints, peer-reviewed papers, technical notes, and theses. Most work is openly available."
+    count={pubs.length}
+  />
+
+  <section class="section">
+    <div class="wrap">
+      {
+        byYear.map((group) => (
+          <div class="yeargroup">
+            <h2 class="yeargroup__year" data-reveal>
+              <span>{group.year}</span>
+            </h2>
+            <ul class="publist" role="list">
+              {group.items.map((p, i) => (
+                <li
+                  class="pub"
+                  data-reveal
+                  data-reveal-delay={`${(i % 4) * 60}ms`}
+                >
+                  <div class="pub__meta">
+                    <span class="chip">{p.data.type}</span>
+                    {p.data.field && (
+                      <span class="chip" data-field={fieldOf(p.data.field)}>
+                        {p.data.field}
+                      </span>
+                    )}
+                    {p.data.team && <span class="pub__team">{p.data.team}</span>}
+                  </div>
+                  <h3 class="pub__title">{p.data.title}</h3>
+                  <p class="pub__authors">{p.data.authors.join(', ')}</p>
+                  {p.data.venue && (
+                    <p class="pub__venue">
+                      {p.data.venue} · {p.data.year}
+                    </p>
+                  )}
+                  {p.data.abstract && (
+                    <p class="pub__abstract">{p.data.abstract}</p>
+                  )}
+                  <div class="pub__links">
+                    {p.data.pdfUrl && (
+                      <a class="link-wave" href={p.data.pdfUrl}>
+                        PDF
+                      </a>
+                    )}
+                    {p.data.arxiv && (
+                      <a
+                        class="link-wave"
+                        href={`https://arxiv.org/abs/${p.data.arxiv}`}
+                      >
+                        arXiv:{p.data.arxiv}
+                      </a>
+                    )}
+                    {p.data.doi && (
+                      <a
+                        class="link-wave"
+                        href={`https://doi.org/${p.data.doi}`}
+                      >
+                        DOI
+                      </a>
+                    )}
+                    {p.data.codeUrl && (
+                      <a class="link-wave" href={p.data.codeUrl}>
+                        Code
+                      </a>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .yeargroup {
+    margin-bottom: 2.5rem;
+  }
+  .yeargroup:last-child {
+    margin-bottom: 0;
+  }
+  .yeargroup__year {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    letter-spacing: 0.06em;
+    color: var(--mist);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+  }
+  .yeargroup__year::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+  .publist {
+    display: flex;
+    flex-direction: column;
+  }
+  .pub {
+    padding: 1.4rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .publist > .pub:last-child {
+    border-bottom: 0;
+  }
+  .pub__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .pub__team {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--mist);
+  }
+  .pub__title {
+    font-size: var(--step-1);
+    margin-top: 0.7rem;
+    line-height: 1.3;
+  }
+  .pub__authors {
+    margin-top: 0.5rem;
+    color: var(--foam);
+    font-size: 0.95rem;
+  }
+  .pub__venue {
+    margin-top: 0.15rem;
+    color: var(--mist);
+    font-style: italic;
+    font-size: 0.92rem;
+  }
+  .pub__abstract {
+    margin-top: 0.7rem;
+    color: var(--mist);
+    line-height: 1.6;
+    font-size: 0.95rem;
+    max-width: 75ch;
+  }
+  .pub__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    margin-top: 0.9rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+  .pub__links:empty {
+    display: none;
+  }
+</style>

@@ -1,0 +1,64 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection, render } from 'astro:content';
+import { formatDate } from '../../lib/format';
+
+export async function getStaticPaths() {
+  const items = await getCollection('announcements', (e) => !e.data.draft);
+  return items.map((item) => ({
+    params: { slug: item.id },
+    props: { item },
+  }));
+}
+
+const { item } = Astro.props;
+const { Content } = await render(item);
+const d = item.data;
+---
+
+<BaseLayout title={d.title} description={d.description} article={true}>
+  <article class="an">
+    <header class="an__head">
+      <div class="wrap">
+        <a class="link-wave an__back" href="/announcements">← All announcements</a>
+        <div class="an__meta">
+          <span class="chip">{d.category}</span>
+          <time datetime={d.pubDate.toISOString()}>{formatDate(d.pubDate)}</time>
+        </div>
+        <h1 class="an__title">{d.title}</h1>
+      </div>
+    </header>
+    <div class="wrap an__body">
+      <div class="prose">
+        <Content />
+      </div>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .an__head {
+    padding-block: clamp(5rem, 4rem + 6vw, 8rem) 2.5rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .an__back {
+    display: inline-flex;
+    margin-bottom: 2rem;
+  }
+  .an__meta {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--mist);
+  }
+  .an__title {
+    font-size: var(--step-4);
+    margin-top: 1.2rem;
+    max-width: 22ch;
+  }
+  .an__body {
+    padding-block: 3.5rem;
+  }
+</style>

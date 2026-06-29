@@ -1,0 +1,190 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { getCollection } from 'astro:content';
+import { site } from '../config/site';
+
+const contacts = (await getCollection('contacts')).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+---
+
+<BaseLayout
+  title="Contact"
+  description={`Get in touch with Rhinelab. ${site.contact.email} — or reach the right desk directly.`}
+>
+  <PageHeader
+    eyebrow="Contact"
+    title="Get in touch"
+    lede="Pick the desk that fits — or use the general address and we'll route it. We read everything."
+  />
+
+  <section class="section">
+    <div class="wrap contact">
+      <ul class="contactlist" role="list">
+        {
+          contacts.map((c, i) => (
+            <li
+              class="contactcard"
+              data-reveal
+              data-reveal-delay={`${(i % 3) * 60}ms`}
+            >
+              <div class="contactcard__head">
+                <h2 class="contactcard__name">{c.data.name}</h2>
+                {c.data.team && (
+                  <span class="contactcard__team">{c.data.team}</span>
+                )}
+              </div>
+              <p class="contactcard__purpose">{c.data.purpose}</p>
+              <a class="contactcard__email link-wave" href={`mailto:${c.data.email}`}>
+                {c.data.email}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+
+      <aside class="contactside" data-reveal>
+        <div class="contactside__card">
+          <p class="eyebrow">Lab</p>
+          <h2 class="contactside__title">{site.fullName}</h2>
+          <dl class="contactside__dl">
+            <div>
+              <dt>Email</dt>
+              <dd>
+                <a class="link-wave" href={`mailto:${site.contact.email}`}>
+                  {site.contact.email}
+                </a>
+              </dd>
+            </div>
+            <div>
+              <dt>Location</dt>
+              <dd>{site.contact.location}</dd>
+            </div>
+          </dl>
+          <div class="contactside__social">
+            {site.social.github && (
+              <a class="link-wave" href={site.social.github}>
+                GitHub
+              </a>
+            )}
+            {site.social.gitlab && (
+              <a class="link-wave" href={site.social.gitlab}>
+                GitLab
+              </a>
+            )}
+            {site.social.x && (
+              <a class="link-wave" href={site.social.x}>
+                X
+              </a>
+            )}
+            {site.social.linkedin && (
+              <a class="link-wave" href={site.social.linkedin}>
+                LinkedIn
+              </a>
+            )}
+            {site.social.scholar && (
+              <a class="link-wave" href={site.social.scholar}>
+                Scholar
+              </a>
+            )}
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .contact {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 3rem;
+    align-items: start;
+  }
+  .contactlist {
+    display: flex;
+    flex-direction: column;
+  }
+  .contactcard {
+    padding: 1.3rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .contactlist > .contactcard:first-child {
+    padding-top: 0;
+  }
+  .contactcard__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .contactcard__name {
+    font-size: var(--step-1);
+  }
+  .contactcard__team {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    color: var(--mist);
+    white-space: nowrap;
+  }
+  .contactcard__purpose {
+    color: var(--mist);
+    margin-top: 0.4rem;
+    line-height: 1.6;
+  }
+  .contactcard__email {
+    display: inline-block;
+    margin-top: 0.8rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+  }
+  .contactside__card {
+    position: sticky;
+    top: 5rem;
+    border-left: 1px solid var(--line);
+    padding-left: 1.6rem;
+  }
+  .contactside__title {
+    font-size: var(--step-1);
+    margin-top: 0.6rem;
+    line-height: 1.3;
+  }
+  .contactside__dl {
+    margin-top: 1.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+  .contactside__dl dt {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mist);
+  }
+  .contactside__dl dd {
+    margin-top: 0.25rem;
+    color: var(--foam);
+    font-size: 0.95rem;
+  }
+  .contactside__social {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    margin-top: 1.8rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+  @media (max-width: 900px) {
+    .contact {
+      grid-template-columns: 1fr;
+    }
+    .contactside__card {
+      position: static;
+    }
+  }
+</style>
