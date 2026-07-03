@@ -99,7 +99,7 @@ export const teams: {
   {
     id: 'mtail',
     acronym: 'MTAIL',
-    name: 'Modelling, Theoretical AI & Learning-theoretic Domain',
+    name: 'Modelling, Theoretical AI & Learning-theoretic Laboratory',
     blurb:
       'The theoretical-empirical gap: theoretical machine learning, statistical models, the double-descent phenomenon, and the coupling of modelling theory. Inherited from the Double Descent — Statistical Learning Theory Research Group.',
   },
